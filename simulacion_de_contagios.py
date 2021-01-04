@@ -84,11 +84,21 @@ if __name__ == '__main__':
 
     
 
-    contador = 0
+    t0 = 0
 
     while not glfw.window_should_close(window):  # Dibujando --> 1. obtener el input
         
-        t = glfw.get_time()
+        ti = glfw.get_time()
+        dt = ti - t0
+        t0 = ti
+        
+        personas.s = ti/0.2
+        
+        
+        if ti>0.2:
+            personas.s = 1
+        
+        personas.caminan()
 
         # Using GLFW to check for input events
         glfw.poll_events()  # OBTIENE EL INPUT --> CONTROLADOR --> MODELOS

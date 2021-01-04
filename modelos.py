@@ -26,7 +26,7 @@ import scene_graph as sg
 import easy_shaders as es
 
 
-
+import glfw
 from OpenGL.GL import *
 import random
 import numpy as np
@@ -37,7 +37,7 @@ d = 1
 class Persona(object):
     def __init__(self):
 
-        self.pos = None
+        self.pos = [[0,0],[0,0]]
         self.estado = 'Sana'
 
         gpu_triangulo_cian = es.toGPUShape(bs.createColorTriangle(0, 0.5, 0.95))  
@@ -59,7 +59,7 @@ class Persona(object):
 
     # funcion que revisa si una persona está al alcance de otra
     def esta_en_radio(self, p: 'Persona', radio):
-        distancia = np.sqrt((self.pos[0]-p.pos[0])**2+(self.pos[1]-p.pos[1])**2)
+        distancia = np.sqrt((self.pos[0][0]-p.pos[0][0])**2+(self.pos[0][1]-p.pos[0][1])**2)
         return distancia<radio
 
 
@@ -77,6 +77,8 @@ class PersonaCreator(object):
         self.est = estadisticas
         self.radio = radio
         self.prob = prob
+
+        self.s = 0
        
 
     def draw(self, pipeline):
@@ -86,13 +88,22 @@ class PersonaCreator(object):
 
     def crear_persona(self):
         p = Persona()
-        p.pos = [random.uniform(-0.95,0.95), random.uniform(-0.95,0.95)]
-        p.model.transform = tr.translate(p.pos[0], p.pos[1],0)
+        x = random.uniform(-0.95,0.95)
+        y = random.uniform(-0.95,0.95)
+        p.pos = [[x,y],[x,y]]
+        p.model.transform = tr.translate(p.pos[0][0], p.pos[0][1],0)
         self.personas.append(p)
+
+    def caminan(self):
+        for k in self.personas:
+            x = k.pos[0][0]*(1-self.s)+k.pos[1][0]*self.s
+            y = k.pos[0][1]*(1-self.s)+k.pos[1][1]*self.s
+            k.model.transform = tr.translate(x,y,0)
+    
 
 
     def pasa_dia(self):
-
+        glfw.set_time(0)
         print('Día',self.est.dias[-1])
         self.est.dias.append(self.est.dias[-1]+1)
         numero_enfermos = 0
@@ -105,9 +116,10 @@ class PersonaCreator(object):
                         numero_enfermos += 1
 
         
-
-            x = k.pos[0]+0.2*random.uniform(-1,1)
-            y = k.pos[1]+0.2*random.uniform(-1,1)
+            
+            k.pos[0] = k.pos[1]
+            x = k.pos[0][0]+0.2*random.uniform(-1,1)
+            y = k.pos[0][1]+0.2*random.uniform(-1,1)
             if x > 0.95:
                 x = 0.95
             if x < -0.95:
@@ -117,9 +129,9 @@ class PersonaCreator(object):
             if y < -0.95:
                 y = -0.95
             
-            k.model.transform = tr.translate(x, y,0)
-            k.pos = [x, y]
-
+            #k.model.transform = tr.translate(x, y,0)
+            k.pos[1] = [x, y]
+        self.s = 0
         for k in self.personas:
             if k.estado == 'Contagiada':
                 k.estado = 'Enferma'

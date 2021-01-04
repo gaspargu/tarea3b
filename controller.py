@@ -3,7 +3,7 @@ Clase controlador, obtiene el input, lo procesa, y manda los mensajes
 a los modelos.
 """
 
-from modelos import Snake
+
 import glfw
 import sys
 from typing import Union
